@@ -18,6 +18,7 @@ import { Public } from '@common/public.decorator';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
   @UseGuards(AuthGuard('local'))
   @Post('login')
   login(
@@ -25,6 +26,7 @@ export class AuthController {
   ): LoginResponseDTO | BadRequestException {
     return this.authService.login(req.user);
   }
+
   @Post('register')
   async register(
     @Body() registerBody: RegisterRequestDTO,

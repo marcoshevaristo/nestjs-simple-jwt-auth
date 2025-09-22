@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from '@auth/strategy/local.strategy';
 import { AuthController } from '@auth/auth.controller';
 import { JwtStrategy } from '@auth/strategy/jwt.strategy';
+import { UserService } from '@user/user.service';
 
 const defaultTokenValidity = '14400'; // 4 hours
 
@@ -16,8 +17,7 @@ const defaultTokenValidity = '14400'; // 4 hours
         secret: process.env.JWT_SECRET,
         signOptions: {
           expiresIn: parseInt(
-            process.env.ACCESS_TOKEN_VALIDITY_DURATION_IN_SEC ||
-              defaultTokenValidity,
+            process.env.JWT_EXPIRES_IN || defaultTokenValidity,
             10,
           ),
         },
@@ -25,7 +25,7 @@ const defaultTokenValidity = '14400'; // 4 hours
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, UserService],
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

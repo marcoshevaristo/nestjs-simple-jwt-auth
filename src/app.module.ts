@@ -9,9 +9,17 @@ import { UserModule } from '@user/user.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtGuard } from '@common/jwt.guard';
 import { JwtStrategy } from '@auth/strategy/jwt.strategy';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [AuthModule, ResumeModule, InterviewModule, LearnModule, UserModule],
+  imports: [
+    ConfigModule.forRoot(),
+    AuthModule,
+    ResumeModule,
+    InterviewModule,
+    LearnModule,
+    UserModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
