@@ -8,10 +8,10 @@ import {
 } from '@nestjs/common';
 import { AuthService } from '@auth/auth.service';
 import { AuthGuard } from '@nestjs/passport';
-import { RegisterRequestDTO } from '@auth/dto/register-request.dto';
+import type { RegisterRequestDTO } from '@auth/dto/register-request.dto';
 import { RegisterResponseDTO } from '@auth/dto/register-response.dto';
 import { LoginResponseDTO } from '@auth/dto/login-response.dto';
-import { LoginRequestDTO } from '@auth/dto/login-request.dto';
+import type { LoginRequestDTO } from '@auth/dto/login-request.dto';
 import { Public } from '@common/public.decorator';
 
 @Public()
@@ -24,7 +24,7 @@ export class AuthController {
   login(
     @Request() req: LoginRequestDTO,
   ): LoginResponseDTO | BadRequestException {
-    return this.authService.login(req.user);
+    return this.authService.login(req);
   }
 
   @Post('register')

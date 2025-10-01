@@ -30,6 +30,8 @@ FROM base AS production
 COPY --from=deps --chown=nestjs:nodejs /usr/src/app/node_modules ./node_modules
 COPY --from=build --chown=nestjs:nodejs /usr/src/app/dist ./dist
 COPY --from=build --chown=nestjs:nodejs /usr/src/app/package*.json ./
+COPY --from=build --chown=nestjs:nodejs /usr/src/app/migrations ./migrations
+COPY --from=build --chown=nestjs:nodejs /usr/src/app/migrate.config.js ./
 USER nestjs
 EXPOSE 3000
 CMD ["node", "dist/main.js"]

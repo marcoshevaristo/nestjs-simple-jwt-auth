@@ -8,9 +8,10 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongodb:27017/minerva
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
-      - mongodb
+      db:
+        condition: service_healthy
     volumes:
       - ./logs:/usr/src/app/logs
     restart: unless-stopped
@@ -26,36 +27,49 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - MONGODB_URI=mongodb://mongodb:27017/minerva-dev
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
-      - mongodb
+      db:
+        condition: service_healthy
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
-    command: npm run start:dev
     restart: unless-stopped
 
-  mongodb:
-    image: mongo:7.0
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
+  db:
+    image: postgres:16-alpine
+    container_name: minerva-postgres
+    restart: always
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
-      - MONGO_INITDB_DATABASE=minerva
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "5432:5432"
     volumes:
-      - mongodb_data:/data/db
-      - ./docker/mongodb/init:/docker-entrypoint-initdb.d:ro
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: minerva-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5050:80"
 
 volumes:
-  mongodb_data:
+  db_data:
     driver: local
 
 networks:
