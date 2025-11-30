@@ -2,12 +2,10 @@ import { Module } from '@nestjs/common';
 import { UserModule } from '@user/user.module';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
-import { LocalStrategy } from '@auth/strategy/local.strategy';
 import { AuthController } from '@auth/auth.controller';
-import { JwtStrategy } from '@auth/strategy/jwt.strategy';
 import { UserService } from '@user/user.service';
 
-const defaultTokenValidity = '14400'; // 4 hours
+const defaultTokenValidity = '14400000'; // 4 hours
 
 @Module({
   imports: [
@@ -25,7 +23,7 @@ const defaultTokenValidity = '14400'; // 4 hours
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, UserService],
+  providers: [AuthService, UserService],
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

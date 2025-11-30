@@ -19,6 +19,7 @@ export class UserService {
 
   async findAll(): Promise<UserEntity[]> {
     const fields: Array<keyof UserEntity> = [
+      'id',
       'name',
       'email',
       'password',
@@ -53,21 +54,31 @@ export class UserService {
     return userEntitySchema.parse({ ...result.rows[0], password: 'hidden' });
   }
 
-  async findOneByEmail(email: string): Promise<UserEntity | null> {
+  async findOneByEmail({
+    email,
+    includePassword = false,
+  }: {
+    email: string;
+    includePassword?: boolean;
+  }): Promise<UserEntity | null> {
     const fields: Array<keyof UserEntity> = [
       'id',
       'name',
       'email',
+      'password',
       'created_at',
       'updated_at',
     ];
     const query = `SELECT ${fields.join(', ')} FROM ${this.table} WHERE email = $1`;
     try {
-      const result = await dbClient.query(query, [email]);
+      const result = await dbClient.query<UserEntity>(query, [email]);
       if (!result.rows.length) {
         return null;
       }
-      return userEntitySchema.parse({ ...result.rows[0], password: 'hidden' });
+      return userEntitySchema.parse({
+        ...result.rows[0],
+        password: includePassword ? result.rows[0].password : 'hidden',
+      });
     } catch (error) {
       console.error('Database query error:', error);
       console.log('Executed query:', query, 'with email:', email);

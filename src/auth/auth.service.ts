@@ -16,20 +16,28 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<UserEntity> {
-    const user: UserEntity | null =
-      await this.userService.findOneByEmail(email);
+    const user: UserEntity | null = await this.userService.findOneByEmail({
+      email,
+      includePassword: true,
+    });
     if (!user) {
-      throw new BadRequestException('UserEntity not found');
+      throw new BadRequestException('User or password incorrect');
     }
     const isMatch: boolean = bcrypt.compareSync(password, user.password);
     if (!isMatch) {
-      throw new BadRequestException('Password does not match');
+      throw new BadRequestException('User or password incorrect');
     }
     return user;
   }
 
+  checkToken(token: string): Promise<boolean> {
+    return this.jwtService.verify(token);
+  }
+
   async register(user: RegisterRequestDTO): Promise<AccessToken> {
-    const existingUser = await this.userService.findOneByEmail(user.email);
+    const existingUser = await this.userService.findOneByEmail({
+      email: user.email,
+    });
     if (existingUser) {
       throw new BadRequestException('E-mail already exists');
     }
@@ -40,8 +48,8 @@ export class AuthService {
     return this.login(createdUserEntity);
   }
 
-  login(user: LoginRequestDTO): AccessToken {
-    const payload = { email: user.email, id: user.id };
-    return { access_token: this.jwtService.sign(payload) };
+  async login({ email, password }: LoginRequestDTO): Promise<AccessToken> {
+    const userEntity = await this.validateUser(email, password);
+    return { access_token: this.jwtService.sign(userEntity) };
   }
 }
