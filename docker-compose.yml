@@ -19,6 +19,7 @@ services:
       - production
 
   app-dev:
+    container_name: minerva-app
     build:
       context: .
       dockerfile: Dockerfile

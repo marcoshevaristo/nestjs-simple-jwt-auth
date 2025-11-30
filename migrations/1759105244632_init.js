@@ -1,3 +1,5 @@
+import { PgLiteral } from 'node-pg-migrate';
+
 /**
  * @type {import('node-pg-migrate').ColumnDefinitions | undefined}
  */
@@ -9,15 +11,16 @@ export const shorthands = undefined;
  * @returns {Promise<void> | void}
  */
 export const up = (pgm) => {
+  pgm.createExtension('uuid-ossp', { ifNotExists: true });
   pgm.createTable('users', {
-    id: { type: 'uuid', primaryKey: true },
+    id: { type: 'uuid', primaryKey: true, default: new PgLiteral('uuid_generate_v4()'), notNull: true },
     name: { type: 'varchar(1000)', notNull: true },
-    createdAt: {
+    created_at: {
       type: 'timestamp',
       notNull: true,
       default: pgm.func('current_timestamp'),
     },
-    updatedAt: {
+    updated_at: {
       type: 'timestamp',
       notNull: true,
       default: pgm.func('current_timestamp'),

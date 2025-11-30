@@ -31,11 +31,12 @@ export class AuthService {
   async register(user: RegisterRequestDTO): Promise<AccessToken> {
     const existingUser = await this.userService.findOneByEmail(user.email);
     if (existingUser) {
-      throw new BadRequestException('email already exists');
+      throw new BadRequestException('E-mail already exists');
     }
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const newUserDTO: CreateUserDTO = { ...user, password: hashedPassword };
-    const createdUserEntity = await this.userService.create(newUserDTO);
+    const createdUserEntity: UserEntity =
+      await this.userService.create(newUserDTO);
     return this.login(createdUserEntity);
   }
 

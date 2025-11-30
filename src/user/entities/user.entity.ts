@@ -5,8 +5,8 @@ export const userEntitySchema = z.object({
   name: z.string(),
   email: z.email(),
   password: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  created_at: z.date(),
+  updated_at: z.date(),
 });
 
 export type UserEntity = z.infer<typeof userEntitySchema>;

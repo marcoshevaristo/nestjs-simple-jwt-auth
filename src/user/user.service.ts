@@ -9,24 +9,40 @@ export class UserService {
   private readonly table = 'users';
 
   async create(createUserDto: CreateUserDTO): Promise<UserEntity> {
-    const fields = ['name', 'email', 'password'];
+    const fields: Array<keyof UserEntity> = ['name', 'email', 'password'];
     const result = await dbClient.query(
-      `INSERT INTO ${this.table} (${fields.join(', ')}) VALUES ($1, $2, $3) RETURNING id`,
+      `INSERT INTO ${this.table} (${fields.join(', ')}) VALUES ($1, $2, $3) RETURNING id, created_at, updated_at, ${fields.join(', ')}`,
       [createUserDto.name, createUserDto.email, createUserDto.password],
     );
     return userEntitySchema.parse(result.rows[0]);
   }
 
   async findAll(): Promise<UserEntity[]> {
-    const fields = ['name', 'email', 'password', 'createdAt', 'updatedAt'];
+    const fields: Array<keyof UserEntity> = [
+      'name',
+      'email',
+      'password',
+      'created_at',
+      'updated_at',
+    ];
     const result = await dbClient.query(
       `SELECT ${fields.join(', ')} FROM ${this.table}`,
     );
-    return userEntitySchema.array().parse(result.rows);
+    return userEntitySchema
+      .array()
+      .parse(
+        result.rows.map((row: UserEntity) => ({ ...row, password: 'hidden' })),
+      );
   }
 
   async findOne(id: string): Promise<UserEntity | null> {
-    const fields = ['id', 'name', 'email', 'createdAt', 'updatedAt'];
+    const fields: Array<keyof UserEntity> = [
+      'id',
+      'name',
+      'email',
+      'created_at',
+      'updated_at',
+    ];
     const result = await dbClient.query(
       `SELECT ${fields.join(', ')} FROM ${this.table} WHERE id = $1`,
       [id],
@@ -34,23 +50,33 @@ export class UserService {
     if (!result.rows.length) {
       return null;
     }
-    return userEntitySchema.parse(result.rows[0]);
+    return userEntitySchema.parse({ ...result.rows[0], password: 'hidden' });
   }
 
   async findOneByEmail(email: string): Promise<UserEntity | null> {
-    const fields = ['id', 'name', 'email', 'createdAt', 'updatedAt'];
-    const result = await dbClient.query(
-      `SELECT ${fields.join(', ')} FROM ${this.table} WHERE email = $1`,
-      [email],
-    );
-    if (result.rows.length) {
-      return null;
+    const fields: Array<keyof UserEntity> = [
+      'id',
+      'name',
+      'email',
+      'created_at',
+      'updated_at',
+    ];
+    const query = `SELECT ${fields.join(', ')} FROM ${this.table} WHERE email = $1`;
+    try {
+      const result = await dbClient.query(query, [email]);
+      if (!result.rows.length) {
+        return null;
+      }
+      return userEntitySchema.parse({ ...result.rows[0], password: 'hidden' });
+    } catch (error) {
+      console.error('Database query error:', error);
+      console.log('Executed query:', query, 'with email:', email);
+      throw error;
     }
-    return userEntitySchema.parse(result.rows[0]);
   }
 
   async update(id: string, updateUserDto: UpdateUserDTO): Promise<UserEntity> {
-    const fields = ['name', 'email', 'password'];
+    const fields: Array<keyof UserEntity> = ['name', 'email', 'password'];
     const setString = fields
       .map((field, index) => `${field} = $${index + 1}`)
       .join(', ');
@@ -65,7 +91,7 @@ export class UserService {
       } RETURNING id, name, email, createdAt, updatedAt`,
       values,
     );
-    return userEntitySchema.parse(result.rows[0]);
+    return userEntitySchema.parse({ ...result.rows[0], password: 'hidden' });
   }
 
   async remove(id: string): Promise<number | null> {
