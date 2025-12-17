@@ -1,5 +1,8 @@
-import { User } from '@user/entities/user.entity';
+import { z } from 'zod';
 
-export class LoginRequestDTO {
-  user: User;
-}
+export const loginRequestDTOSchema = z.object({
+  email: z.email(),
+  password: z.string(),
+});
+
+export type LoginRequestDTO = z.infer<typeof loginRequestDTOSchema>;
